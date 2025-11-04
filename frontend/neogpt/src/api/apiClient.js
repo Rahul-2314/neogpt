@@ -5,7 +5,7 @@ const apiClient = axios.create({
 	// baseURL: "https://neogpt-1.onrender.com",
 	// baseURL: "https://neogpt-backend.vercel.app",
 	baseURL: `${
-		import.meta.env.VITE_API_BASE_URL || "https://neogpt-backend.vercel.app"
+		import.meta.env.VITE_API_BASE_URL
 	}`,
 	headers: {
 		"Content-Type": "application/json",
@@ -13,6 +13,7 @@ const apiClient = axios.create({
 });
 
 export default apiClient;
+
 
 
 
