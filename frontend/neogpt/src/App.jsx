@@ -8,7 +8,7 @@ import {
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import ChatPage from "./pages/ChatPage";
-import "./app.css";
+import "./App.css";
 
 const PrivateRoute = ({ children }) => {
 	const token = localStorage.getItem("authToken");
