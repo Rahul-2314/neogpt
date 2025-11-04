@@ -14,19 +14,19 @@ const app = express();
 const port = 5000;
 
 app.use(express.json());
-// app.use(cors());
-app.use(
-	cors({
-		origin: [
-			"http://localhost:5173", 
-			"https://neogpt-blue.vercel.app",
-			"https://neogpt-blue.netlify.app",
-		],
-		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-		allowedHeaders: ["Content-Type", "Authorization"],
-		credentials: true,
-	})
-);
+app.use(cors());
+// app.use(
+// 	cors({
+// 		origin: [
+// 			"http://localhost:5173", 
+// 			"https://neogpt-blue.vercel.app",
+// 			"https://neogpt-blue.netlify.app",
+// 		],
+// 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+// 		allowedHeaders: ["Content-Type", "Authorization"],
+// 		credentials: true,
+// 	})
+// );
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
@@ -77,6 +77,7 @@ mongoose
 app.listen(port, () => {
 	console.log(`Server is running on port ${port}`);
 });
+
 
 
 
