@@ -22,7 +22,7 @@ app.use(
 			"https://neogpt-blue.vercel.app",
 			"https://neogpt-blue.netlify.app",
 		],
-		methods: ["GET", "POST", "PUT", "DELETE"],
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 		allowedHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
 	})
@@ -77,6 +77,7 @@ mongoose
 app.listen(port, () => {
 	console.log(`Server is running on port ${port}`);
 });
+
 
 
 
