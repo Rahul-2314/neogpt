@@ -20,6 +20,7 @@ app.use(
 		origin: [
 			"http://localhost:5173", 
 			"https://neogpt-blue.vercel.app",
+			"https://neogpt-blue.netlify.app",
 		],
 		methods: ["GET", "POST", "PUT", "DELETE"],
 		allowedHeaders: ["Content-Type", "Authorization"],
@@ -76,5 +77,6 @@ mongoose
 app.listen(port, () => {
 	console.log(`Server is running on port ${port}`);
 });
+
 
 
