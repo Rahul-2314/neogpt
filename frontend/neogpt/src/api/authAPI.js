@@ -1,4 +1,18 @@
-import apiClient from "./apiClient";
+// import apiClient from "./apiClient";
+import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://neogpt-1.onrender.com";
+
+const apiClient = axios.create({
+	// baseURL: "http://localhost:5000",
+	// baseURL: "https://neogpt-1.onrender.com",
+	// baseURL: "https://neogpt-backend.vercel.app",
+	baseURL: API_BASE,
+	headers: {
+		"Content-Type": "application/json",
+	},
+});
+
 
 // login
 export const loginUser = async (username, password) => {
@@ -95,4 +109,5 @@ export const getChatByThreadId = async (threadId) => {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 	return res.data;
+
 };
