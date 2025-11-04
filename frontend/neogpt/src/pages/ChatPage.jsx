@@ -9,6 +9,7 @@ import { getUser, getChatByThreadId } from "../api/authAPI";
 const ChatPage = () => {
 	const { threadId } = useParams();
 	const navigate = useNavigate();
+	const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://neogpt-1.onrender.com";
 
 	const [messages, setMessages] = useState([]);
 	const [language, setLanguage] = useState("English");
@@ -82,7 +83,7 @@ const ChatPage = () => {
 			{ role: "assistant", text: "Thinking..." },
 		]);
 		try {
-			const response = await fetch("http://localhost:5000/chat", {
+			const response = await fetch(`${API_BASE}/chat`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
