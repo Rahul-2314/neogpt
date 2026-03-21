@@ -6,134 +6,163 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo_neogpt.png";
 
 const Navbar = ({ language, setLanguage }) => {
-	const [user, setUser] = useState(null);
-	const [showProfile, setShowProfile] = useState(false);
-	const dropdownRef = useRef(null);
-	const navigate = useNavigate();
+  const [user,        setUser]        = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate    = useNavigate();
 
-	// Load user info when Navbar mounts
-	useEffect(() => {
-		const loadUser = async () => {
-			try {
-				const data = await getUser();
-				setUser(data);
-				setLanguage(data.language || "English"); // sync parent ChatPage
-			} catch (err) {
-				console.error("Navbar getUser error:", err.message);
-			}
-		};
-		loadUser();
-	}, [setLanguage]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getUser();
+        setUser(data);
+        setLanguage(data.language || "English");
+      } catch (err) {
+        console.error("Navbar getUser:", err.message);
+      }
+    })();
+  }, [setLanguage]);
 
-	// Handle language change (update both backend + frontend)
-	const handleLanguageChange = async (newLang) => {
-		try {
-			setLanguage(newLang); // update parent ChatPage immediately
-			const res = await updateUserLanguage(newLang); // update backend
-			setUser((prev) => (prev ? { ...prev, language: res.language } : prev));
+  const handleLanguageChange = async (lang) => {
+    try {
+      setLanguage(lang);
+      const res = await updateUserLanguage(lang);
+      setUser(p => p ? { ...p, language: res.language } : p);
+      localStorage.setItem("user", JSON.stringify({ ...(user || {}), language: res.language }));
+    } catch (err) {
+      console.error("lang update:", err.message);
+    }
+  };
 
-			// Update stored user info
-			localStorage.setItem(
-				"user",
-				JSON.stringify({ ...(user || {}), language: res.language })
-			);
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+        setShowProfile(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-			console.log("🌐 Language updated to:", res.language);
-		} catch (err) {
-			console.error("handleLanguageChange error:", err.message);
-		}
-	};
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/home");
+  };
 
-	// Close dropdown on outside click
-	useEffect(() => {
-		const handleClickOutside = (e) => {
-			if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-				setShowProfile(false);
-			}
-		};
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => document.removeEventListener("mousedown", handleClickOutside);
-	}, []);
+  const initials = user?.fullname
+    ? user.fullname.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+    : "?";
 
-	// Logout function
-	const handleLogout = () => {
-		localStorage.removeItem("authToken");
-		localStorage.removeItem("user");
-		navigate("/home");
-	};
+  return (
+    <nav className="w-full fixed top-0 z-50 h-14 flex items-center"
+      style={{
+        background: "rgba(7,11,8,0.86)",
+        backdropFilter: "blur(22px)",
+        borderBottom: "1px solid rgba(34,197,94,0.12)",
+      }}>
 
-	return (
-		<nav className="w-full bg-gradient-to-r from-[#00111F] via-[#002A4A] to-[#0B3B5C] text-white flex justify-between items-center px-6 py-3 shadow-md fixed top-0 z-50">
-			{/* 🔹 Logo Section */}
-			<div
-				className="flex  items-center gap-2 cursor-pointer"
-				onClick={() => navigate("/home")}
-			>
-				<img src={logo} alt="logo" className="w-10 h-10" />
-				<div className="bg-cyan-500 text-black font-extrabold text-xl rounded-full px-4 py-1 shadow-md">
-					NeoGPT
-				</div>
-				<span className="text-gray-300 italic hidden sm:inline">
-					AI That Speaks You
-				</span>
-			</div>
+      <div className="w-full px-3 sm:px-5 flex items-center justify-between gap-3">
 
-			{/* 🔹 Right Section */}
-			<div className="flex items-center gap-4 relative">
-				{/* 🌐 Language Select */}
-				<LanguageSelect
-					language={language}
-					setLanguage={handleLanguageChange}
-					small
-				/>
+        <button onClick={() => navigate("/home")}
+          className="flex items-center gap-2 flex-shrink-0 group">
+          <img src={logo} alt="NeoGPT" className="w-7 h-7 sm:w-8 sm:h-8" />
+          <span className="font-extrabold text-[15px] tracking-tight sm:block transition-colors group-hover:text-[var(--accent)]"
+            style={{ color: "var(--text-white)" }}>
+            NeoGPT
+          </span>
+        </button>
 
-				{/* 👤 Profile Avatar */}
-				{user ? (
-					<>
-						<div
-							onClick={() => setShowProfile((prev) => !prev)}
-							className="cursor-pointer rounded-full bg-cyan-500 text-black font-bold w-10 h-10 flex items-center justify-center hover:scale-105 transition"
-						>
-							{user.fullname ? user.fullname.charAt(0).toUpperCase() : "?"}
-						</div>
+        <div className="flex items-center gap-2 sm:gap-3 relative" ref={dropdownRef}>
 
-						{/* 🧩 Profile Dropdown */}
-						<AnimatePresence>
-							{showProfile && (
-								<motion.div
-									ref={dropdownRef}
-									initial={{ opacity: 0, y: -10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-									transition={{ duration: 0.18 }}
-									className="absolute right-0 top-14 bg-neutral-800 rounded-xl border border-gray-600 w-64 shadow-xl p-4"
-								>
-									<h3 className="text-lg font-semibold text-cyan-400 mb-1">
-										{user.fullname}
-									</h3>
-									<p className="text-gray-400 text-sm mb-1">@{user.username}</p>
-									<p className="text-gray-400 text-sm mb-3">
-										🌐 Language:{" "}
-										<span className="text-amber-400 font-medium">
-											{user.language || "Not set"}
-										</span>
-									</p>
-									<button
-										onClick={handleLogout}
-										className="w-full py-2 mt-2 bg-gradient-to-r from-cyan-500 to-amber-500 rounded-full text-black font-semibold hover:opacity-90 transition"
-									>
-										Logout
-									</button>
-								</motion.div>
-							)}
-						</AnimatePresence>
-					</>
-				) : (
-					<div className="text-gray-300">Not logged in</div>
-				)}
-			</div>
-		</nav>
-	);
+          <LanguageSelect language={language} setLanguage={handleLanguageChange} small />
+
+          {user ? (
+            <>
+              <button
+                onClick={() => setShowProfile(p => !p)}
+                className="relative w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black flex-shrink-0 transition-all"
+                style={{
+                  background: showProfile
+                    ? "var(--accent)"
+                    : "linear-gradient(135deg, var(--accent) 0%, #4ade80 100%)",
+                  color: "#000",
+                  boxShadow: showProfile ? "0 0 0 2px rgba(34,197,94,0.5), 0 0 12px rgba(34,197,94,0.3)" : "none",
+                }}>
+                {initials}
+              </button>
+
+              <AnimatePresence>
+                {showProfile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0,  scale: 1    }}
+                    exit={{    opacity: 0, y: -6, scale: 0.96  }}
+                    transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                    className="absolute right-0 top-[2.75rem] w-64 rounded-2xl p-1 z-50"
+                    style={{
+                      background: "var(--navy-card)",
+                      border: "1px solid rgba(34,197,94,0.18)",
+                      boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(34,197,94,0.05)",
+                    }}>
+
+                    <div className="px-4 pt-4 pb-3">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-black font-black text-sm flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg, var(--accent) 0%, #4ade80 100%)" }}>
+                          {initials}
+                        </div>
+                        <div className="overflow-hidden flex-1">
+                          <p className="font-bold text-sm truncate" style={{ color: "var(--text-white)" }}>
+                            {user.fullname}
+                          </p>
+                          <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
+                            @{user.username}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between"
+                        style={{
+                          background: "rgba(34,197,94,0.07)",
+                          border: "1px solid rgba(34,197,94,0.14)",
+                        }}>
+                        <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                          Language
+                        </span>
+                        <span className="text-xs font-bold" style={{ color: "var(--accent)" }}>
+                          {user.language || "Not set"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="px-1 pb-1">
+                      <button onClick={handleLogout}
+                        className="w-full py-2.5 text-sm font-semibold rounded-xl transition-all"
+                        style={{
+                          background: "rgba(239,68,68,0.08)",
+                          border: "1px solid rgba(239,68,68,0.18)",
+                          color: "#f87171",
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.15)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,0.08)"; }}>
+                        Log out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          ) : (
+            <button onClick={() => navigate("/auth")}
+              className="btn-glow text-black text-xs font-bold px-4 py-2 rounded-xl transition-all"
+              style={{ background: "var(--accent)" }}>
+              Log in
+            </button>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 };
 
 export default Navbar;

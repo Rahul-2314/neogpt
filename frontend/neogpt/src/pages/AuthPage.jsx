@@ -2,129 +2,186 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginUser, registerUser, findUser } from "../api/authAPI";
-import Navbar from "../components/Navbar";
+import logo from "../assets/logo_neogpt.png";
 
-const AuthPage = () => {
-	const [isLogin, setIsLogin] = useState(true);
-	const [fullname, setFullname] = useState("");
-	const [username, setUsername] = useState("");
-	const [password, setPassword] = useState("");
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState("");
-	const [language, setLanguage] = useState("");
-	const navigate = useNavigate();
+const AuthPage = ({ mode = "login" }) => {
+  const navigate   = useNavigate();
+  const [isLogin,  setIsLogin]  = useState(mode !== "signup");
+  const [fullname, setFullname] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState("");
+  const [showPw,   setShowPw]   = useState(false);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-		setError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      let token, userData;
+      if (isLogin) {
+        token    = await loginUser(username, password);
+        userData = await findUser(username);
+      } else {
+        token    = await registerUser(fullname, username, password);
+        userData = { fullname, username };
+      }
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      navigate("/chat");
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-		try {
-			let token;
-			let userData;
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: "var(--navy)" }}>
 
-			if (isLogin) {
-				token = await loginUser(username, password);
-				userData = await findUser(username);
-			} else {
-				token = await registerUser(fullname, username, password);
-				userData = { fullname, username };
-			}
+      {/* Logo — top left */}
+      <div className="px-6 pt-5">
+        <button onClick={() => navigate("/home")}
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <img src={logo} alt="NeoGPT" className="w-8 h-8" />
+          <span className="font-extrabold text-[15px]" style={{ color: "var(--text-white)" }}>
+            NeoGPT
+          </span>
+        </button>
+      </div>
 
-			localStorage.setItem("authToken", token);
-			localStorage.setItem("user", JSON.stringify(userData));
+      {/* Centered form */}
+      <div className="flex-1 flex items-center justify-center px-4 pb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full"
+          style={{ maxWidth: 380 }}>
 
-			navigate("/chat");
-		} catch (err) {
-			setError(err.message || "Something went wrong");
-		} finally {
-			setLoading(false);
-		}
-	};
+          {/* Tab switcher */}
+          <div className="flex gap-1 p-1 rounded-xl mb-6"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            {[["Log in", true], ["Sign up", false]].map(([label, val]) => (
+              <button key={label}
+                onClick={() => { setIsLogin(val); setError(""); }}
+                className="flex-1 py-2 rounded-lg text-sm font-bold transition-all"
+                style={{
+                  background: isLogin === val ? "var(--accent)" : "transparent",
+                  color:      isLogin === val ? "#000" : "var(--text-muted)",
+                  border: "none", cursor: "pointer", fontFamily: "inherit",
+                }}>
+                {label}
+              </button>
+            ))}
+          </div>
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-[#00111F] via-[#002A4A] to-[#0B3B5C] flex flex-col items-center justify-center">
-			{/* Navbar at top */}
-			<Navbar language={language} setLanguage={setLanguage} />
+          {/* Heading */}
+          <h1 className="font-extrabold mb-1" style={{ fontSize: "1.25rem", color: "var(--text-white)", letterSpacing: "-0.3px" }}>
+            {isLogin ? "Welcome back" : "Create your account"}
+          </h1>
+          <p className="mb-6 text-sm" style={{ color: "var(--text-secondary)" }}>
+            {isLogin ? "Log in to resume your conversations." : "Free forever. No credit card needed."}
+          </p>
 
-			{/* Form container */}
-			<div className="mt-24 w-full flex items-center justify-center px-4">
-				<motion.div
-					initial={{ opacity: 0, y: 50 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.6 }}
-					className="bg-neutral-900/80 backdrop-blur-lg rounded-3xl p-8 w-full max-w-md shadow-2xl border border-gray-700"
-				>
-					<h1 className="text-3xl font-bold text-center text-cyan-400 mb-6">
-						{isLogin ? "Welcome Back" : "Create Account"}
-					</h1>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-					<form onSubmit={handleSubmit} className="space-y-4">
-						<AnimatePresence mode="wait">
-							{!isLogin && (
-								<motion.input
-									key="fullname"
-									type="text"
-									placeholder="Full Name"
-									value={fullname}
-									onChange={(e) => setFullname(e.target.value)}
-									className="w-full px-4 py-2 rounded-lg bg-neutral-800 text-white border border-gray-600 focus:outline-none focus:border-cyan-400"
-									required
-									initial={{ opacity: 0, y: -10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-								/>
-							)}
-						</AnimatePresence>
+            <AnimatePresence mode="wait">
+              {!isLogin && (
+                <motion.div key="fullname"
+                  initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
+                    style={{ color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+                    Full name
+                  </label>
+                  <input type="text" placeholder="fullname"
+                    value={fullname} onChange={e => setFullname(e.target.value)}
+                    className="input-neo w-full px-4 py-3 rounded-xl text-sm font-medium"
+                    required />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-						<input
-							type="text"
-							placeholder="Username"
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-							className="w-full px-4 py-2 rounded-lg bg-neutral-800 text-white border border-gray-600 focus:outline-none focus:border-cyan-400"
-							required
-						/>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
+                style={{ color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+                Username
+              </label>
+              <input type="text" placeholder="username"
+                value={username} onChange={e => setUsername(e.target.value)}
+                className="input-neo w-full px-4 py-3 rounded-xl text-sm font-medium"
+                required />
+            </div>
 
-						<input
-							type="password"
-							placeholder="Password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							className="w-full px-4 py-2 rounded-lg bg-neutral-800 text-white border border-gray-600 focus:outline-none focus:border-cyan-400"
-							required
-						/>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-1.5"
+                style={{ color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  className="input-neo w-full px-4 py-3 rounded-xl text-sm font-medium"
+                  style={{ paddingRight: "2.8rem" }}
+                  required />
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-base leading-none"
+                  style={{ background: "none", border: "none", cursor: "pointer", lineHeight: 1 }}
+                  title={showPw ? "Hide password" : "Show password"}>
+                  {showPw ? "🙈" : "🐵"}
+                </button>
+              </div>
+            </div>
 
-						{error && (
-							<p className="text-red-400 text-sm bg-red-900/30 p-2 rounded-lg text-center">
-								⚠️ {error}
-							</p>
-						)}
+            <AnimatePresence>
+              {error && (
+                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="flex items-start gap-2 text-xs px-3 py-2.5 rounded-lg"
+                  style={{
+                    background: "rgba(239,68,68,0.09)",
+                    border: "1px solid rgba(239,68,68,0.28)",
+                    color: "#FCA5A5",
+                  }}>
+                  <span className="mt-0.5 flex-shrink-0">⚠</span>
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-						<motion.button
-							whileHover={{ scale: 1.03 }}
-							whileTap={{ scale: 0.97 }}
-							type="submit"
-							disabled={loading}
-							className="w-full py-2 rounded-full bg-gradient-to-r from-cyan-500 to-amber-500 font-semibold text-black shadow-lg hover:shadow-cyan-500/30 transition"
-						>
-							{loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
-						</motion.button>
-					</form>
+            <motion.button type="submit" disabled={loading}
+              whileHover={{ filter: loading ? "none" : "brightness(1.08)" }}
+              whileTap={{ scale: loading ? 1 : 0.97 }}
+              className="w-full py-3 rounded-xl font-extrabold text-sm btn-glow"
+              style={{
+                background: loading ? "rgba(34,197,94,0.45)" : "var(--accent)",
+                color: "#000", border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontFamily: "inherit",
+                boxShadow: loading ? "none" : "0 0 20px rgba(34,197,94,0.28)",
+                transition: "background 0.2s, box-shadow 0.2s",
+              }}>
+              {loading ? "Please wait…" : isLogin ? "Log in →" : "Create account →"}
+            </motion.button>
+          </form>
 
-					<p className="text-gray-400 text-sm text-center mt-5">
-						{isLogin ? "Don’t have an account?" : "Already have an account?"}{" "}
-						<button
-							onClick={() => setIsLogin(!isLogin)}
-							className="text-cyan-400 hover:underline font-medium"
-						>
-							{isLogin ? "Sign Up" : "Login"}
-						</button>
-					</p>
-				</motion.div>
-			</div>
-		</div>
-	);
+          <p className="text-center text-xs mt-4" style={{ color: "var(--text-muted)" }}>
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button onClick={() => { setIsLogin(v => !v); setError(""); }}
+              className="font-bold underline"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", fontFamily: "inherit", fontSize: "inherit" }}>
+              {isLogin ? "Sign up" : "Log in"}
+            </button>
+          </p>
+
+        </motion.div>
+      </div>
+    </div>
+  );
 };
 
 export default AuthPage;

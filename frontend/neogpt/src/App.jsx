@@ -22,8 +22,7 @@ function App() {
 				<Route path="/" element={<Navigate to="/home" replace />} />
 				<Route path="/home" element={<LandingPage />} />
 				<Route path="/auth" element={<AuthPage />} />
-
-				{/* ✅ Chat routes */}
+				<Route path="/authsign" element={<AuthPage mode="signup"/>} />
 				<Route
 					path="/chat"
 					element={
@@ -40,8 +39,6 @@ function App() {
 						</PrivateRoute>
 					}
 				/>
-
-				{/* Optional fallback */}
 				<Route path="*" element={<Navigate to="/home" replace />} />
 			</Routes>
 		</Router>
