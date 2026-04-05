@@ -116,8 +116,6 @@ always be polite.`,
 	// Multi-model fallback
 	const models = [
 		"openai/gpt-oss-20b",
-		"groq/compound-mini",
-		"groq/compound",
 		"openai/gpt-oss-120b",
 	];
 
