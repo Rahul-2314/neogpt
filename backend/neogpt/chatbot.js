@@ -113,10 +113,12 @@ always be polite.`,
 		messages.splice(1, messages.length - 20);
 	}
 
-	// ✅ FIX: Multi-model fallback (ONLY change here)
+	// Multi-model fallback
 	const models = [
 		"openai/gpt-oss-20b",
-		"llama-3.3-70b-versatile",
+		"openai/gpt-oss-120b",
+		"groq/compound-mini",
+		"groq/compound",
 	];
 
 	const MAX_RETRIES = 3;
