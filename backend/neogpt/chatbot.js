@@ -116,9 +116,9 @@ always be polite.`,
 	// Multi-model fallback
 	const models = [
 		"openai/gpt-oss-20b",
-		"openai/gpt-oss-120b",
 		"groq/compound-mini",
 		"groq/compound",
+		"openai/gpt-oss-120b",
 	];
 
 	const MAX_RETRIES = 3;
