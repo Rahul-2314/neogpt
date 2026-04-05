@@ -32,7 +32,6 @@ async function webSearch({ query }) {
 			return "No results found or API error.";
 		}
 
-		// Summarize & truncate results
 		const summarized = response.results
 			.map((r) => r.content)
 			.slice(0, 5)
@@ -45,7 +44,6 @@ async function webSearch({ query }) {
 }
 
 export async function generate(userMessage, threadId, language) {
-	// -------------------------prompt message/input-------------------
 	const baseMessages = [
 		{
 			role: "system",
@@ -110,85 +108,108 @@ always be polite.`,
 		content: userMessage + ` Output language (strict): ${language}`,
 	});
 
-	const MAX_RETRIES = 10;
-	let attempts = 0;
-
 	// ---------------- Keep conversation history short ----------------
 	if (messages.length > 20) {
-		// keep system + last 19 messages
 		messages.splice(1, messages.length - 20);
 	}
 
-	// let model = "llama-3.3-70b-versatile"; // default heavy model
-	let model = "openai/gpt-oss-20b"; // default heavy model
+	// ✅ FIX: Multi-model fallback (ONLY change here)
+	const models = [
+		"openai/gpt-oss-20b",
+		"llama-3.3-70b-versatile",
+	];
 
-	while (attempts < MAX_RETRIES) {
-		try {
-			attempts++;
-			//--------------------------llm invoke--------------------------
-			const completion = await groq.chat.completions.create({
-				temperature: 0,
-				model: model,
-				messages: messages,
-				tools: [
-					{
-						type: "function",
-						function: {
-							name: "webSearch",
-							description:
-								"Search the latest information and realtime data on the internet.",
-							parameters: {
-								type: "object",
-								properties: {
-									query: {
-										type: "string",
-										description: "The search query to perform search on.",
+	const MAX_RETRIES = 3;
+	let modelIndex = 0;
+
+	while (modelIndex < models.length) {
+		let attempts = 0;
+
+		while (attempts < MAX_RETRIES) {
+			try {
+				attempts++;
+
+				const completion = await groq.chat.completions.create({
+					temperature: 0,
+					model: models[modelIndex],
+					messages: messages,
+					tools: [
+						{
+							type: "function",
+							function: {
+								name: "webSearch",
+								description:
+									"Search the latest information and realtime data on the internet.",
+								parameters: {
+									type: "object",
+									properties: {
+										query: {
+											type: "string",
+											description:
+												"The search query to perform search on.",
+										},
 									},
+									required: ["query"],
 								},
-								required: ["query"],
 							},
 						},
-					},
-				],
-				tool_choice: "auto",
-			});
+					],
+					tool_choice: "auto",
+				});
 
-			messages.push(completion.choices[0].message);
+				const message = completion.choices?.[0]?.message;
 
-			const toolCalls = completion.choices[0].message.tool_calls;
-
-			if (!toolCalls) {
-				// store messages in cache
-				cache.set(threadId, messages);
-				return completion.choices[0].message.content;
-			}
-
-			// if tool present
-			for (const tool of toolCalls) {
-				const functionName = tool.function.name;
-				const functionParams = tool.function.arguments;
-
-				if (functionName === "webSearch") {
-					const toolResult = await webSearch(JSON.parse(functionParams));
-
-					messages.push({
-						tool_call_id: tool.id,
-						role: "tool",
-						name: functionName,
-						content: toolResult,
-					});
+				// ✅ validation added
+				if (!message || (!message.content && !message.tool_calls)) {
+					throw new Error("Empty response from model");
 				}
+
+				messages.push(message);
+
+				const toolCalls = message.tool_calls;
+
+				if (!toolCalls) {
+					cache.set(threadId, messages);
+					return message.content;
+				}
+
+				for (const tool of toolCalls) {
+					const functionName = tool.function.name;
+					const functionParams = tool.function.arguments;
+
+					if (functionName === "webSearch") {
+						const toolResult = await webSearch(
+							JSON.parse(functionParams)
+						);
+
+						messages.push({
+							tool_call_id: tool.id,
+							role: "tool",
+							name: functionName,
+							content: toolResult,
+						});
+					}
+				}
+			} catch (err) {
+				console.error(
+					`LLM error (${models[modelIndex]}):`,
+					err.message
+				);
+
+				if (err.status === 413) {
+					messages.splice(1, messages.length - 10);
+				}
+
+				if (attempts >= MAX_RETRIES) break;
 			}
-		} catch (err) {
-			if (err.status === 413) {
-				messages.splice(1, messages.length - 10);
-				continue; // retry
-			}
-			console.error("LLM error:", err);
-			return `Error in LLM call: ${err.message || err}`;
 		}
+
+		// switch model
+		console.log(`🔁 Switching to next model...`);
+		modelIndex++;
 	}
-	return "⚠️ I couldn't get a response after multiple retries. Please try again later.";
+
+	return "⚠️ I couldn't get a response after trying multiple models.";
 }
 
 console.log("hello world");
