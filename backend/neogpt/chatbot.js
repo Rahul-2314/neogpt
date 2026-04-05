@@ -116,7 +116,9 @@ always be polite.`,
 	// Multi-model fallback
 	const models = [
 		"openai/gpt-oss-20b",
+		"llama-3.1-8b-instant",
 		"openai/gpt-oss-120b",
+		"llama-3.3-70b-versatile",
 	];
 
 	const MAX_RETRIES = 3;
