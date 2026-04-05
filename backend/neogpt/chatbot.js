@@ -207,11 +207,11 @@ always be polite.`,
 		}
 
 		// switch model
-		console.log(`🔁 Switching to next model...`);
+		console.log(`Switching to next model...`);
 		modelIndex++;
 	}
 
-	return "⚠️ I couldn't get a response after trying multiple models.";
+	return "! I couldn't get a response after trying multiple models.";
 }
 
 console.log("hello world");
