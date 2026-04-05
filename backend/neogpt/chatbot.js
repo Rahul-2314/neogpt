@@ -161,7 +161,7 @@ always be polite.`,
 
 				const message = completion.choices?.[0]?.message;
 
-				// ✅ validation added
+				//  validation added
 				if (!message || (!message.content && !message.tool_calls)) {
 					throw new Error("Empty response from model");
 				}
