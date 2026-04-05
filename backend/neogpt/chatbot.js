@@ -49,7 +49,7 @@ export async function generate(userMessage, threadId, language) {
 	const baseMessages = [
 		{
 			role: "system",
-			content: `You are Neo, a smart personal assistant created by Rahul Chowdhury.
+			content: `You are Neo, a smart personal assistant created by Rahul Chowdhury and Rohit Dhar as their college project.
 If you know the answer to a question, answer it directly in plain ${language}.
 If the answer requires real-time, local, or up-to-date information, or if you don't know the answer, use the available tool.
 You have access to the following tool:
