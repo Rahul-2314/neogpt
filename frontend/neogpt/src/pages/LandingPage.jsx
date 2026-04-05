@@ -10,7 +10,7 @@ import {
 	PricingSection,
 } from "./landing/ProductSections";
 
-// ── Roadmap ───────────────────────────────────────────────────────
+//  Roadmap 
 const RoadmapSection = () => (
 	<section id="future" className="py-20 sm:py-20 px-4 sm:px-6 relative z-10">
 		<div className="max-w-5xl mx-auto">
@@ -94,7 +94,7 @@ const RoadmapSection = () => (
 	</section>
 );
 
-// ── CTA ───────────────────────────────────────────────────────────
+// CTA 
 const CTASection = ({ handleCTA }) => (
 	<section className="py-12 sm:py-16 px-4 sm:px-6 relative z-10">
 		<div className="max-w-4xl mx-auto">
@@ -173,7 +173,7 @@ const CTASection = ({ handleCTA }) => (
 	</section>
 );
 
-// ── Stack + Footer ────────────────────────────────────────────────
+// Stack + Footer 
 const StackAndFooter = () => {
 	const navigate = useNavigate();
 	return (
@@ -292,7 +292,7 @@ const StackAndFooter = () => {
 	);
 };
 
-// ── Main Orchestrator ─────────────────────────────────────────────
+// Main Orchestrator 
 const LandingPage = () => {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("authToken");
