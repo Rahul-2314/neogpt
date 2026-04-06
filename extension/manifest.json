@@ -1,0 +1,26 @@
+{
+	"manifest_version": 3,
+	"name": "NeoGPT - Smart Page Assistant",
+	"version": "1.0.0",
+	"description": "AI-powered page summarizer and context-aware chat for any webpage.",
+	"icons": {
+		"48": "icons/logo_neogpt.png"
+	},
+	"action": {
+		"default_popup": "popup.html",
+		"default_title": "NeoGPT Assistant"
+	},
+	"background": {
+		"service_worker": "src/background.js",
+		"type": "module"
+	},
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["src/content.js"],
+			"run_at": "document_idle"
+		}
+	],
+	"permissions": ["activeTab", "storage", "scripting", "contextMenus"],
+	"host_permissions": ["<all_urls>"]
+}
