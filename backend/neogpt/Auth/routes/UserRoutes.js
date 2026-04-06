@@ -106,7 +106,7 @@ router.post("/plan", userMiddleware, async (req, res) => {
 		const valid = ["free", "pro", "premium", "premium_plus"];
 		if (!valid.includes(plan))
 			return res.status(400).json({ msg: "Invalid plan" });
-		await User.findOneAndUpdate({ username: req.username }, { plan });
+		await User.findOneAndUpdate({ username: req.username }, { plan }, {tokensUsed: 0});
 		res.json({ msg: "Plan updated", plan });
 	} catch (err) {
 		res.status(500).json({ msg: "Server error" });
