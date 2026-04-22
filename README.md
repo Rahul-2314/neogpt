@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/src/assets/logo_neogpt.png" alt="NeoGPT Logo" width="90" height="90" />
+<img src="frontend/neogpt/src/assets/logo_neogpt.png" alt="NeoGPT Logo" width="90" height="90" />
 
 # NeoGPT
 
