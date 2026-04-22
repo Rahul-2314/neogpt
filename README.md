@@ -1,10 +1,8 @@
 <div align="center">
 
-<img src="frontend/neogpt/src/assets/logo_neogpt.png" alt="NeoGPT Logo" width="90" height="90" />
+<img src="frontend/neogpt/src/assets/logo_neogpt.png" alt="NeoGPT Logo" width="75" height="75" />
 
-# NeoGPT
-
-### AI That Speaks You —
+# NeoGPT - AI That Speaks You
 
 **Culturally intelligent · 35+ Indian languages · Zero translation**
 
